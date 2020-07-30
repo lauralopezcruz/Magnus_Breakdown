@@ -9,3 +9,7 @@ def index():
     if form.validate_on_submit():
         return render_template('index.html', form=form, input=form.group.data)
     return render_template('index.html', form=form)
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
