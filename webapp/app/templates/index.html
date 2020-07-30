@@ -3,4 +3,20 @@
 {% block content %}
   <h1>header</h1>
   <p>paragraph</p>
+  <form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <p>
+      {{ form.group.label }}<br />
+      {{ form.group(size=32) }}<br />
+      {% for error in form.group.errors %}
+        <span style="color: red;">{{ error }}</span>
+      {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+  </form>
+
+  {% if input %}
+    <br />
+    <p>{{ input }}</p>
+  {% endif %}
 {% endblock %}

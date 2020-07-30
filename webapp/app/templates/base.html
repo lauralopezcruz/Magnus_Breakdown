@@ -5,7 +5,7 @@
   <body>
     <div>
       Navbar:
-      <a href="/index">Home</a>
+      <a href="{{ url_for('index') }}">Home</a>
     </div>
     <hr>
     {% block content %}{% endblock %}
