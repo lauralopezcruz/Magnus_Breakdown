@@ -15,10 +15,19 @@ body {
     background: #a5d6e0;
 }
 
+
 h1 {
     font-size: 26px;
     font-weight: 600;
 }
+p.indent {
+    text-indent: 1.5em;
+}
+p.text {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
 
 .katex {
     font-size: 1.0em !important;
