@@ -8,15 +8,14 @@
   </head>
   <body>
     <header>
-      <div id="sitename">
+      <span id="sitename">
         <a href="{{ url_for('index') }}">Magnus Breakdown</a>
-      </div>
+      </span>
       <nav>
         <a href="{{ url_for('about') }}">About</a>
         <a href="https://github.com/lauralopezcruz/Magnus_Breakdown">GitHub</a>
       </nav>
     </header>
-    <hr>
     {% block content %}{% endblock %}
   </body>
 </html>

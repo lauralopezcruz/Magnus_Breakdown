@@ -4,4 +4,61 @@ body {
     margin: 60px auto 80px auto;
     padding-left: 20px;
     padding-right: 20px;
+    font-size: 20px;
+}
+
+
+::-moz-selection {
+    background: #a5d6e0;
+}
+::selection {
+    background: #a5d6e0;
+}
+
+h1 {
+    font-size: 26px;
+    font-weight: 600;
+    font-style: italic;
+}
+
+
+header {
+    line-height: 40px;
+    padding-top: 12px;
+    padding-bottom: 5px;
+    margin-bottom: 40px;
+    border-top-width: 3px;
+    border-top-color: black;
+    border-top-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #478589;
+    border-bottom-style: solid;
+}
+header a:link {
+    text-decoration: none;
+    box-shadow: none;
+}
+header a:visited {
+    color: black;
+    box-shadow: none;
+}
+header a:hover, a:active {
+    color: #478589;
+    box-shadow: none;
+}
+#sitename {
+    display: inline;
+    font-size: 34px;
+    font-weight: 400;
+}
+nav {
+    display: inline;
+    float: right;
+}
+nav a {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 14px;
+    margin-left: 15px;
+    font-weight: 600;
 }
