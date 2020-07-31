@@ -1,12 +1,19 @@
+<!DOCTYPE html>
 <html>
   <head>
+    <title>Magnus Breakdown</title>
+
     <link rel="stylesheet" type="text/css"
           href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet"
           href="//brick.a.ssl.fastly.net/Crimson:400,600,700,400i,600i,700i">
-    <title>Magnus Breakdown</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='katex.css') }}">
+    <script src="{{ url_for('static', filename='katex.js') }}"></script>
+    <script src="{{ url_for('static', filename='smrender.js') }}"></script>
   </head>
-  <body>
+
+  <body onload="myRender()">
     <header>
       <span id="sitename">
         <a href="{{ url_for('index') }}">Magnus Breakdown</a>
