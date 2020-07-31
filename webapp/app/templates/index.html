@@ -1,26 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Header</h1>
-
   <p>
-    Paragraph paragraph
+    Input a one-relator group and find out blah blah blah...
   </p>
 
-  <form action="" method="post" novalidate>
+  <form id="group-input" action="" method="post" novalidate>
     {{ form.hidden_tag() }}
     <p>
-      {{ form.group.label }}<br />
-      {{ form.group(size=32) }}<br />
-      {% for error in form.group.errors %}
+      \( G=\Big\langle \)
+      {{ form.generators(rows=2, cols=20) }}
+      \( \Big| \)
+      {{ form.relation(rows=2, cols=40) }}
+      \( \Big\rangle \)
+
+      {% for error in form.generators.errors %} <!-- fix later -->
+        <span style="color: red;">{{ error }}</span>
+      {% endfor %}
+      {% for error in form.relation.errors %}
         <span style="color: red;">{{ error }}</span>
       {% endfor %}
     </p>
     <p>{{ form.submit() }}</p>
   </form>
 
-  {% if input %}
-    <br />
-    <p>{{ input }}</p>
+  {% if generators and relation %}
+    \[ G=\langle {{ generators }} \mid {{ relation }} \rangle \]
   {% endif %}
 {% endblock %}
