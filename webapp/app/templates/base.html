@@ -1,14 +1,21 @@
 <html>
   <head>
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"
+          href="//brick.a.ssl.fastly.net/Crimson:400,600,700,400i,600i,700i">
     <title>Magnus Breakdown</title>
   </head>
   <body>
-    <div>
-      Navbar:
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('about') }}">About</a>
-      <a href="https://github.com/lauralopezcruz/Magnus_Breakdown">GitHub</a>
-    </div>
+    <header>
+      <div id="sitename">
+        <a href="{{ url_for('index') }}">Magnus Breakdown</a>
+      </div>
+      <nav>
+        <a href="{{ url_for('about') }}">About</a>
+        <a href="https://github.com/lauralopezcruz/Magnus_Breakdown">GitHub</a>
+      </nav>
+    </header>
     <hr>
     {% block content %}{% endblock %}
   </body>
