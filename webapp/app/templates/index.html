@@ -14,6 +14,7 @@
       {{ form.relation(rows=2, cols=40) }}
       \( \Big\rangle \)
 
+      <br />
       {% for error in form.generators.errors %} <!-- fix later -->
         <span style="color: red;">{{ error }}</span>
       {% endfor %}

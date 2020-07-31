@@ -68,3 +68,17 @@ nav a {
 form#group-input textarea {
     vertical-align: middle;
 }
+form#group-input input[type="submit"] {
+    font-family: "Crimson", serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: #ffffff;
+    padding-top: 5px;
+    border: 1px solid #999999;
+}
+
+form#group-input input[type="submit"]:hover {
+    background-color: #a5d6e0;
+}
