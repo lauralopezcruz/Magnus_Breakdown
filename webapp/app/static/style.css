@@ -20,12 +20,29 @@ h1 {
     font-size: 26px;
     font-weight: 600;
 }
+
 p.indent {
     text-indent: 1.5em;
 }
 p.text {
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+a:link {
+    color: black;
+    text-decoration: none;
+    box-shadow: 0 1px #478589;
+}
+a:visited{
+    color: black;
+    text-decoration: none;
+    box-shadow: 0 2px #478589;
+}
+a:hover, a:active {
+    color: #478589;
+    text-decoration: none;
+    box-shadow: 0 1px #478589;
 }
 
 
@@ -83,7 +100,7 @@ form#group-input input[type="submit"] {
     letter-spacing: 1px;
     font-size: 14px;
     font-weight: 600;
-    background-color: #ffffff;
+    background-color: white;
     padding-top: 5px;
     border: 1px solid #999999;
 }
