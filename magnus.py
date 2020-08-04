@@ -1,25 +1,12 @@
 import string
 
-def get_new_letters(used_letters, num_letters, preferred_letters=[]):
-    available_letters = list(string.ascii_lowercase)
-    available_letters.remove("i")
-    available_letters.remove("j")
-    greek_letters = ["alpha","beta","gamma","delta","epsilon","zeta","eta","theta","iota","kappa",
-                     "lambda","mu","nu","xi","pi","rho","tau","phi","chi","psi","omega"]
-    for letter in greek_letters:
-        letter = "\\" + letter
-    available_letters.extend(greek_letters)
+##################
+##################
+# SYLLABLE CLASS #
+##################
 
-    for letter in used_letters:
-        available_letters.remove(letter)
-
-    for letter in reversed(preferred_letters):
-        if letter in available_letters:
-            available_letters.remove(letter)
-            available_letters.insert(0, letter)
-
-    return available_letters[:num_letters]
-
+# The Syllable class represents group elements raised to a power. The group
+# element may have a subscript, which is stored as a separate attribute.
 class Syllable:
     def __init__(self, letter, subscript, exponent):
         self.ltr = letter    # string
@@ -37,13 +24,17 @@ class Syllable:
     def __eq__(self, other):
         if not isinstance(other, Syllable):
             return False
-        return self.ltr == other.ltr and self.sub == other.sub and self.exp == other.exp
+        return (self.ltr == other.ltr and
+                self.sub == other.sub and
+                self.exp == other.exp)
 
     def inverse(self):
         new_exp = -self.exp
         return Syllable(self.ltr, self.sub, new_exp)
 
-    def add_subscript(self, new_subscript): # Moves old subscript into letter
+    # Makes a new syllable with an additional subscript. If this syllable
+    # already has a subscript, then the old subscript is moved into the letter.
+    def add_subscript(self, new_subscript):
         if self.sub == "":
             return Syllable(self.ltr, new_subscript, self.exp)
         else:
@@ -53,30 +44,117 @@ class Syllable:
     def base(self):
         return Syllable(self.ltr, self.sub, 1)
 
+
+
+#################################################################
+#################################################################
+# CONVERTING FROM STRINGS TO SYLLABLES AND WORDS AND VICE VERSA #
+#################################################################
+
 def str_to_syllable(string):
     letter = string[0]
 
     if "_" not in string: # e.g., a^5
         subscript = ""
-    else:
-        rest = string[string.index("_")+1:]
-        if "^" in rest: # e.g., a_5^3
-            subscript_str = rest[:rest.index("^")]
-        else: # e.g., a^3_5
-            subscript_str = rest
-        subscript = int(subscript_str.replace("{","").replace("}",""))
+    else: # e.g., a^5_3 or a_3^5
+        left = string.index("_")+1
+        right = string.index("^") if "^" in string[left:] else len(string)
+        substring = string[left:right].replace("{","").replace("}","")
+        subscript = int(substring)
 
     if "^" not in string: # e.g., b_2
         exponent = 1
-    else:
-        rest = string[string.index("^")+1:]
-        if "_" in rest: # e.g., b^7_2
-            exponent_str = rest[:rest.index("_")]
-        else: # e.g., b_2^7
-            exponent_str = rest
-        exponent = int(exponent_str.replace("{","").replace("}",""))
+    else: # e.g., a^5_3 or a_3^5
+        left = string.index("^")+1
+        right = string.index("_") if "_" in string[left:] else len(string)
+        substring = string[left:right].replace("{","").replace("}","")
+        exponent = int(substring)
 
     return Syllable(letter, subscript, exponent)
+
+# A "word" is a list of syllables.
+def word_to_str(word):
+    if word == []:
+        return "1"
+    else:
+        return " ".join([str(syllable) for syllable in word])
+
+# This assumes there are no subscripts or greek letters...
+def str_to_word(string):
+    string = string.replace(" ","").replace("{","").replace("}","")
+
+    # Expands commutators, e.g., [x,y]^2 -> (x^-1 y^-1 x y)^2
+    while "]" in string:
+        right = string.index("]")
+        left = string[:right].rfind("[")
+        comma = string[:right].rfind(",")
+        first_arg = string[left+1:comma]
+        second_arg = string[comma+1:right]
+
+        string = (string[:left]
+                  + "("
+                  + word_to_str(invert_word(str_to_word(first_arg)))
+                  + word_to_str(invert_word(str_to_word(second_arg)))
+                  + first_arg
+                  + second_arg
+                  + ")"
+                  + string[right+1:])
+
+    # Replace any substrings in parentheses like (abc)^2 with the
+    # substring repeated the right number of times, like abcabc
+    while ")" in string:
+        right = string.index(")")
+        left = string[:right].rfind("(")
+        substr = string[left+1:right]
+
+        # If the substring in parentheses isn't followed by an exponent
+        if right == len(string)-1 or string[right+1] != "^":
+            string = string[:left] + substr + string[right+1:]
+            continue
+
+        # Otherwise build the exponent by taking all numeric characters or
+        # minus signs following the carat.
+        exp_str = ""
+        exp_index = right+2
+        for i in range(right+2, len(string)):
+            if string[i].isnumeric() or string[i] == "-":
+                exp_str = exp_str + string[i]
+                exp_index = exp_index + 1
+            else:
+                break
+        exp = int(exp_str)
+        if exp >= 0:
+            repeated_substr = substr * exp
+        else:
+            inverted_substr = word_to_str(invert_word(str_to_word(substr)))
+            inverted_substr = inverted_substr.replace(" ","")
+            repeated_substr = inverted_substr * -exp
+        string = string[:left] + repeated_substr + string[right+2+len(exp_str):]
+
+    # Cut string into syllables, assuming that an alphabet character indicates
+    # the start of a new syllable (so this doesn't work for greek letters...)
+    syllables = []
+    syl_str = ""
+    for i in range(len(string)):
+        if not string[i].isalpha():
+            syl_str = syl_str + string[i]
+        else:
+            if syl_str != "":
+                print(syl_str)
+                syllables.append(str_to_syllable(syl_str))
+            syl_str = string[i]
+
+    print(syl_str)
+    syllables.append(str_to_syllable(syl_str))
+
+    return syllables
+
+
+
+####################################
+####################################
+# ALGEBRAIC MANIPULATIONS OF WORDS #
+####################################
 
 def reduce_word(word): # e.g., abaaa^-5 -> aba^-3
     syllables = word.copy()
@@ -84,7 +162,7 @@ def reduce_word(word): # e.g., abaaa^-5 -> aba^-3
     while i < len(syllables)-1:
         s1 = syllables[i]
         s2 = syllables[i+1]
-        if s1.ltr == s2.ltr and s1.sub == s2.sub:
+        if s1.base() == s2.base():
             exp = s1.exp + s2.exp
             if exp !=0:
                 product = Syllable(s1.ltr, s1.sub, exp)
@@ -93,128 +171,17 @@ def reduce_word(word): # e.g., abaaa^-5 -> aba^-3
                 syllables = syllables[:i] + syllables[i+2:]
         else:
             i = i+1
-    return(syllables)
+    return syllables
 
 def invert_word(syllables): # e.g., a^2bc -> c^-1 b^-1 a^-2
     return [syl.inverse() for syl in list(reversed(syllables))]
 
-def reverse_substr(substr): # a^3b_0 --> b_0a^3
-    pieces = []
-    piece = ""
-    for i in range(len(substr)):
-        if not substr[i].isalpha():
-            piece = piece + substr[i]
-            if substr[i] == "^":
-                piece = piece + "-"
-        else:
-            if piece != "":
-                pieces.append(piece)
-            piece = substr[i]
-    pieces.append(piece)
-    pieces.reverse()
-    return "".join(pieces)
-
-# A "word" is a list of syllables.
-def str_to_word(string):
-    string = string.replace(" ","").replace("{","").replace("}","")
-
-    #Expands commutators
-    while "]" in string:
-        end_comm_index = string.index("]")
-        start_comm_index = string[:end_comm_index].rfind("[")
-        comma_index=string[:end_comm_index].rfind(",")
-        first_arg_substr=string[start_comm_index+1:comma_index]
-        second_arg_substr=string[comma_index+1:end_comm_index]
-
-        string=(string[:start_comm_index]
-                + "("
-                + word_to_str(invert_word(str_to_word(first_arg_substr)))
-                + word_to_str(invert_word(str_to_word(second_arg_substr)))
-                + first_arg_substr
-                + second_arg_substr
-                + ")"
-                + string[end_comm_index+1:])
 
 
-
-    # Replace any substrings in parentheses like (abc)^2 with the
-    # substring repeated the right number of times, like abcabc
-    while ")" in string:
-        end_index = string.index(")")
-        start_index = string[:end_index].rfind("(")
-        substr = string[start_index+1:end_index]
-
-
-        # If the substring in parentheses isn't followed by an exponent
-        if end_index == len(string)-1 or string[end_index+1] != "^":
-            string = string[:start_index] + substr + string[end_index+1:]
-            continue
-
-        exp = ""
-        exp_index = end_index+2
-        for i in range(end_index+2, len(string)):
-            if string[i].isnumeric() or string[i] == "-":
-                exp = exp + string[i]
-                exp_index = exp_index + 1
-            else:
-                break
-        exp = int(exp)
-        if exp >= 0:
-            repeated_substr = substr * exp
-        else:
-            inverted_substr = word_to_str(invert_word(str_to_word(substr)))
-            inverted_substr = inverted_substr.replace(" ","")
-            repeated_substr = inverted_substr * -exp
-        string = string[:start_index] + repeated_substr + string[exp_index:]
-
-
-    # Cut string into syllables
-    syllables = []
-    syl_str = ""
-    for i in range(len(string)):
-        if not string[i].isalpha():
-            syl_str = syl_str + string[i]
-        else:
-            if syl_str != "":
-                syllables.append(str_to_syllable(syl_str))
-            syl_str = string[i]
-
-    syllables.append(str_to_syllable(syl_str))
-    return(syllables)
-
-def word_to_str(word):
-    if word == []:
-        return "1"
-    else:
-        return " ".join([str(syllable) for syllable in word])
-
-def exponent_sum(generator,relation):
-    return sum([syl.exp for syl in relation
-                if generator.ltr == syl.ltr and generator.sub == syl.sub])
-
-#Here we rewrite relation so that the generator with exponent sum=0 is not in the first position
-#relation and generators are already adjusted
-def remove_exp_zero(zero_generator,relation):
-    syl = relation[0]
-    if zero_generator.ltr == syl.ltr and zero_generator.sub == syl.sub:
-        return reduce_word(relation[1:] + [syl.inverse()])
-    else:
-        return relation
-
-def relation_prime(zero_generator,relation):
-    new_relation = [relation[0].add_subscript(0)]
-    for i in range(1,len(relation)):
-        if relation[i].ltr != zero_generator.ltr:
-            subscript = -exponent_sum(zero_generator, relation[:i])
-            syl = relation[i].add_subscript(subscript)
-            new_relation.append(syl)
-    return(reduce_word(new_relation))
-
-def smallest_subscript(letter,relation):
-    return min([syl.sub for syl in relation if syl.ltr == letter])
-
-def largest_subscript(letter,relation):
-    return max([syl.sub for syl in relation if syl.ltr == letter])
+###############
+###############
+# GROUP CLASS #
+###############
 
 class Group:
     def __init__(self, generators, relations):
@@ -227,7 +194,9 @@ class Group:
         return "<" + gens_str + " | "  + rels_str + ">"
 
 def str_to_group(string):
-    string = string.replace("<","").replace(">","").replace("\\langle","").replace("\\rangle","").replace(" ","")
+    string = (string.replace("<","").replace(">","")
+                    .replace("\\langle","").replace("\\rangle","")
+                    .replace(" ",""))
 
     divider = "\\mid" if "\\mid" in string else "|"
 
@@ -256,6 +225,68 @@ def str_to_group(string):
                 relations.append(left_word)
 
     return Group(generators, relations)
+
+
+
+###################################################
+###################################################
+# HELPER FUNCTIONS FOR MAGNUS BREAKDOWN ALGORITHM #
+###################################################
+
+def get_new_letters(used_letters, num_letters, preferred_letters=[]):
+    available_letters = list(string.ascii_lowercase)
+    available_letters.remove("i")
+    available_letters.remove("j")
+    greek_letters = ["alpha","beta","gamma","delta","epsilon","zeta","eta",
+                     "theta","iota","kappa","lambda","mu","nu","xi","pi","rho",
+                     "tau","phi","chi","psi","omega"]
+    for letter in greek_letters:
+        letter = "\\" + letter
+    available_letters.extend(greek_letters)
+
+    for letter in used_letters:
+        available_letters.remove(letter)
+
+    for letter in reversed(preferred_letters):
+        if letter in available_letters:
+            available_letters.remove(letter)
+            available_letters.insert(0, letter)
+
+    return available_letters[:num_letters]
+
+def exponent_sum(generator, relation):
+    return sum([syl.exp for syl in relation if syl.base() == generator.base() ])
+
+# Here we rewrite relation so that the generator with exponent sum=0
+# is not in the first position relation and generators are already adjusted
+def remove_exp_zero(zero_generator,relation):
+    syl = relation[0]
+    if zero_generator.ltr == syl.ltr and zero_generator.sub == syl.sub:
+        return reduce_word(relation[1:] + [syl.inverse()])
+    else:
+        return relation
+
+def relation_prime(zero_generator,relation):
+    new_relation = [relation[0].add_subscript(0)]
+    for i in range(1,len(relation)):
+        if relation[i].ltr != zero_generator.ltr:
+            subscript = -exponent_sum(zero_generator, relation[:i])
+            syl = relation[i].add_subscript(subscript)
+            new_relation.append(syl)
+    return(reduce_word(new_relation))
+
+def smallest_subscript(letter,relation):
+    return min([syl.sub for syl in relation if syl.ltr == letter])
+
+def largest_subscript(letter,relation):
+    return max([syl.sub for syl in relation if syl.ltr == letter])
+
+
+
+##############################
+##############################
+# MAGNUS BREAKDOWN ALGORITHM #
+##############################
 
 def magnus_case1(group, used_letters=set()):
     generators = group.gens
@@ -298,8 +329,9 @@ def magnus_case1(group, used_letters=set()):
             Group(new_generators, [relation_p]),
             used_letters]
 
-#this function rewrites a group G as a free product of free groups and a one relator group.
-#It outputs a one relator group where all gen appear in relation and the free generators
+# This function rewrites a group G as a free product of free groups and a one
+# relator group. It outputs a one relator group where all gen appear in relation
+# and the free generators
 def free_gen_rewrite(group):
     generators = group.gens
     relation = reduce_word(group.rels[0])
@@ -317,7 +349,8 @@ def free_gen_rewrite(group):
 
     return [free_generators, Group(new_generators,[relation])]
 
-#returns a group that does have a zero generator than you can then input into magnus_case1
+# Returns a group that does have a zero generator than you can then input into
+# magnus_case1
 def magnus_case2(group, used_letters=set()):
     generators = group.gens
     gen0 = generators[0]
@@ -386,6 +419,3 @@ def magnus_breakdown(group):
             print("\nCase 2: "+str(group))
 
     return hierarchy_of_groups
-
-#groups = magnus_breakdown(str_to_group("<a,b,c|bacb^2a^-3c^3a^2>"))
-#groups = magnus_breakdown(str_to_group("<a,b,c,d|a^2bc^-1a>"))
