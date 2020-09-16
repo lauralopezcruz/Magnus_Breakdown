@@ -2,7 +2,7 @@
 
 {% block content %}
   <p>
-    Input a one-relator group and find out blah blah blah...
+    Input a one-relator group as you would in LaTeX.
   </p>
 
   <form id="group-input" action="" method="post" novalidate>
@@ -25,7 +25,7 @@
     <p>{{ form.submit() }}</p>
   </form>
 
-  {% if generators and relation %}
-    \[ G=\langle {{ generators }} \mid {{ relation }} \rangle \]
-  {% endif %}
+  {% for string in group_strings %}
+    \[ {{ string }} \]
+  {% endfor %}
 {% endblock %}

@@ -419,6 +419,7 @@ def magnus_case2(group, used_letters=set()):
     return [new_group, used_letters]
 
 
+
 def magnus_breakdown(group):
     print(group)
     group_sequence = [group]
