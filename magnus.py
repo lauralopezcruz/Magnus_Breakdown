@@ -5,18 +5,22 @@ import string
 # SYLLABLE CLASS #
 ##################
 
-# The Syllable class represents group elements raised to a power. The group
-# element may have a subscript, which is stored as a separate attribute.
+# The Syllable class represents a group element raised to a power. The group
+# element may have a subscript or multiple subscripts, which is stored as
+# a separate attribute that is always a list of ints.
 class Syllable:
     def __init__(self, letter, subscript, exponent):
         self.ltr = letter    # string
-        self.sub = subscript # int or empty string
+        if not isinstance(subscript, list):
+           subscript = [subscript]
+        self.sub = subscript # list of ints
         self.exp = exponent  # int
 
     def __str__(self):
-        string = str(self.ltr)
-        if self.sub != "":
-            string = string + "_{" + str(self.sub) + "}"
+        string = self.ltr
+        if self.sub != []:
+            subs = ",".join([str(s) for s in self.sub])
+            string = string + "_{" + subs + "}"
         if self.exp != 1:
             string = string + "^{" + str(self.exp) + "}"
         return string
@@ -36,14 +40,9 @@ class Syllable:
         new_exp = self.exp * power
         return Syllable(self.ltr, self.sub, new_exp)
 
-    # Makes a new syllable with an additional subscript. If this syllable
-    # already has a subscript, then the old subscript is moved into the letter.
+    # Makes a new syllable with an additional subscript.
     def add_subscript(self, new_subscript):
-        if self.sub == "":
-            return Syllable(self.ltr, new_subscript, self.exp)
-        else:
-            new_ltr = self.ltr + "_{" + str(self.sub) + "}"
-            return Syllable(new_ltr, new_subscript, self.exp)
+        return Syllable(self.ltr, self.sub + [new_subscript], self.exp)
 
     def base(self):
         return Syllable(self.ltr, self.sub, 1)
@@ -59,12 +58,12 @@ def str_to_syllable(string):
     letter = string[0]
 
     if "_" not in string: # e.g., a^5
-        subscript = ""
+        subscript = []
     else: # e.g., a^5_3 or a_3^5
         left = string.index("_")+1
         right = string.index("^") if "^" in string[left:] else len(string)
         substring = string[left:right].replace("{","").replace("}","")
-        subscript = int(substring)
+        subscript = [int(s) for s in substring.split(",")]
 
     if "^" not in string: # e.g., b_2
         exponent = 1
@@ -85,16 +84,24 @@ def word_to_str(word):
 
 # This assumes there are no subscripts or greek letters...
 def str_to_word(string):
-    string = string.replace(" ","").replace("{","").replace("}","")
+    string = string.replace(" ","")
 
     # Expands commutators, e.g., [x,y]^2 -> (x^-1 y^-1 x y)^2
     while "]" in string:
         right = string.index("]")
         left = string[:right].rfind("[")
-        comma = string[:right].rfind(",")
-        first_arg = string[left+1:comma]
-        second_arg = string[comma+1:right]
+        substring = string[left+1:right]
 
+        # Make sure the comma that separates the two arguments is not between
+        # any braces {...}, in which case it's delimiting multiple subscripts.
+        for (i,char) in enumerate(substring):
+            if char == ",":
+                if substring[:i].count("{") == substring[:i].count("}"):
+                    comma_index = i
+                    break
+
+        first_arg = substring[:comma_index]
+        second_arg = substring[comma_index+1:]
         string = (string[:left]
                   + "("
                   + word_to_str(invert_word(str_to_word(first_arg)))
@@ -272,21 +279,6 @@ def get_new_letters(used_letters, num_letters, preferred_letters=[]):
 def exponent_sum(generator, relation):
     return sum([syl.exp for syl in relation if syl.base() == generator.base() ])
 
-def relation_prime(gen_exp0, relation):
-    new_relation = [relation[0].add_subscript(0)]
-    for i in range(1, len(relation)):
-        if relation[i].base() != gen_exp0.base(): # changed from ltr to base()
-            subscript = -exponent_sum(gen_exp0, relation[:i])
-            syl = relation[i].add_subscript(subscript)
-            new_relation.append(syl)
-    return reduce_word(new_relation)
-
-def smallest_subscript(letter, relation):
-    return min([syl.sub for syl in relation if syl.ltr == letter])
-
-def largest_subscript(letter, relation):
-    return max([syl.sub for syl in relation if syl.ltr == letter])
-
 def word_length(word):
     return sum([abs(syl.exp) for syl in word])
 
@@ -310,41 +302,51 @@ def magnus_case1(group, used_letters=set()):
     # If the relation begins with gen_exp0, conjugate the relation
     # to shift the first syllable to the end.
     if gen_exp0.base() == relation[0].base():
-        relation = reduce_word(relation[1:] + [syl.inverse()])
+        relation = reduce_word(relation[1:] + [relation[0].inverse()])
 
-    relation_p = relation_prime(gen_exp0, relation)
-
-    ###########
-    #### I think this needs to be changed from ltr to base
-    letters = {syl.ltr for syl in relation_p}
-    new_generators = []
-    letter_max_sub = {}
-    for letter in letters:
-        l_subscript = largest_subscript(letter, relation_p)
-        s_subscript = smallest_subscript(letter, relation_p)
-        letter_max_sub[letter] = l_subscript
-        for i in range(s_subscript, l_subscript+1):
-            new_generators.append(Syllable(letter, i, 1))
-    new_group = Group(new_generators, [relation_p])
+    # Make r' from r
+    relation_prime = [relation[0].add_subscript(0)]
+    for i in range(1, len(relation)):
+        if relation[i].base() != gen_exp0.base():
+            subscript = -exponent_sum(gen_exp0, relation[:i])
+            syl = relation[i].add_subscript(subscript)
+            relation_prime.append(syl)
+    relation_prime = reduce_word(relation_prime)
 
     # Fetch a new letter for the HNN extension's stable letter
-    used_letters = (used_letters
-                    .union({g.ltr[0] for g in new_generators})
-                    .union({g.ltr[0] for g in relation}))
-    stable_ltr = get_new_letters(used_letters, 1 , ["t"])[0]
-    used_letters = used_letters.union(stable_ltr)
+    used_letters = (used_letters.union({g.ltr for g in generators}))
+    new_ltr = get_new_letters(used_letters, 1 , ["t"])[0]
+    stable_ltr = Syllable(new_ltr, [], 1)
+    used_letters = used_letters.union(new_ltr)
 
-    # Rewrite original group as HNN extension of new_group
+    # List out the new generators present in relation_prime and
+    # any generators between them, i.e., if g_i and g_j are in relation_prime,
+    # then also list out g_{i+1}, g_{i+2}, ..., g_{j-1}.
+    # Simultaneously, we have to list out the conjugations needed for
+    # the HNN extension.
+    new_generators = []
+    conjugations = []
+    for gen in generators:
+        new_subscripts = [syl.sub[-1] for syl in relation_prime
+                          if syl.ltr == gen.ltr and syl.sub[:-1] == gen.sub]
+        if new_subscripts:
+            for i in range(min(new_subscripts), max(new_subscripts)+1):
+                new_gen = Syllable(gen.ltr, gen.sub+[i], 1)
+                new_generators.append(new_gen)
+
+                if i != max(new_subscripts):
+                    image = Syllable(gen.ltr, gen.sub+[i+1], 1)
+                    conjugation = [stable_ltr.inverse(),
+                                   new_gen,
+                                   stable_ltr,
+                                   image.inverse()]
+                    conjugations.append(conjugation)
+
+    new_group = Group(new_generators, [relation_prime])
+
     HNN_generators = new_generators.copy()
-    HNN_generators.append(Syllable(stable_ltr, "", 1))
-    HNN_relations = [relation_p]
-    for gen in new_generators:
-        if gen.sub != letter_max_sub[gen.ltr]:
-            conjugation = [Syllable(stable_ltr, "", -1),
-                           gen,
-                           Syllable(stable_ltr, "", 1),
-                           Syllable(gen.ltr, gen.sub+1, -1)]
-            HNN_relations.append(conjugation)
+    HNN_generators.append(stable_ltr)
+    HNN_relations = [relation_prime] + conjugations
     HNN = Group(HNN_generators, HNN_relations)
 
     return [HNN, new_group, used_letters]
@@ -417,11 +419,11 @@ def magnus_case2(group, used_letters=set()):
 
 def magnus_breakdown(group):
     print(group)
-    hierarchy_of_groups = [group]
+    group_sequence = [group]
 
     used_letters = {gen.ltr[0] for gen in group.gens}
 
-    while word_length(hierarchy_of_groups[-1].rels[0]) > 1:
+    while word_length(group_sequence[-1].rels[0]) > 1:
         free_generators, group = free_gen_rewrite(group)
         generators = group.gens
         relation = reduce_word(group.rels[0])
@@ -433,11 +435,11 @@ def magnus_breakdown(group):
                 break
         if zero_gen != None:
             [original_group, group, used_letters] = magnus_case1(group, used_letters)
-            hierarchy_of_groups.append(group)
+            group_sequence.append(group)
             print("\nCase 1: "+str(group))
         else:
             [group, used_letters] = magnus_case2(group, used_letters)
-            hierarchy_of_groups.append(group)
+            group_sequence.append(group)
             print("\nCase 2: "+str(group))
 
-    return hierarchy_of_groups
+    return group_sequence
