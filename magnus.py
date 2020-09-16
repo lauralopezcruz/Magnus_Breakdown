@@ -351,6 +351,8 @@ def magnus_case1(group, used_letters=set()):
 
     return [HNN, new_group, used_letters]
 
+
+
 # Take a one-relator group, extract any free generators (generators that
 # don't appear in the relation), and return those free generators and
 # the one-relator group without those free generators.
@@ -385,10 +387,10 @@ def magnus_case2(group, used_letters=set()):
     x,y = get_new_letters(used_letters,2,["x","y"])
     used_letters = used_letters.union({x,y})
 
-    syl_0 = Syllable(x,"",1) # Will now have exp sum 0
-    syl_1 = Syllable(y,"",1)
-    replacement0 = [syl_1, Syllable(x, "", -exp_sum1)] # yx^{-\beta}
-    replacement1 = [Syllable(x, "", exp_sum0)]         # x^{\alpha}
+    syl_0 = Syllable(x,[],1) # Will now have exp sum 0
+    syl_1 = Syllable(y,[],1)
+    replacement0 = [syl_1, Syllable(x, [], -exp_sum1)] # yx^{-\beta}
+    replacement1 = [Syllable(x, [], exp_sum0)]         # x^{\alpha}
 
     new_relation = []
     for i in range(len(relation)):

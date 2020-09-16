@@ -95,7 +95,7 @@ class TestMagnusCase1(unittest.TestCase):
         new_group = Group([a_minus1, a_0, c_minus1], [HNN_rel1])
 
         [G, H, used_letters] = magnus_case1(group)
-        self.assertEqual(HNN, G, msg="\n"+str(G)+"\n"+str(HNN))
+        self.assertEqual(HNN, G)
         self.assertEqual(new_group, H)
 
     def test2(self):
