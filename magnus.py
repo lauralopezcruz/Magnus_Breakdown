@@ -7,13 +7,13 @@ import string
 
 # The Syllable class represents a group element raised to a power. The group
 # element may have a subscript or multiple subscripts, which is stored as
-# a separate attribute that is always a list of ints.
+# a separate attribute that is always a list, primarily of ints.
 class Syllable:
     def __init__(self, letter, subscript, exponent):
         self.ltr = letter    # string
         if not isinstance(subscript, list):
            subscript = [subscript]
-        self.sub = subscript # list of ints
+        self.sub = subscript # list, usually of ints
         self.exp = exponent  # int
 
     def __str__(self):
@@ -197,11 +197,6 @@ class Group:
         self.gens = generators # list of syllables
         self.rels = relations  # list of words
 
-    def __str__(self):
-        gens_str = ", ".join([str(g) for g in self.gens])
-        rels_str = ", ".join([word_to_str(r) for r in self.rels])
-        return "<" + gens_str + " | "  + rels_str + ">"
-
     def __eq__(self, other):
         if not isinstance(other, Group):
             return False
@@ -215,17 +210,21 @@ class Group:
 
         return all([same_gens1, same_gens2, same_rels1, same_rels2])
 
-def str_to_group(string):
-    string = (string.replace("<","").replace(">","")
-                    .replace("\\langle","").replace("\\rangle","")
-                    .replace(" ",""))
+    def __str__(self):
+        gens_str = ", ".join([str(g) for g in self.gens])
+        rels_str = ", ".join([word_to_str(r) for r in self.rels])
+        return "<" + gens_str + " | "  + rels_str + ">"
 
-    divider = "\\mid" if "\\mid" in string else "|"
+    def latex(self):
+        gens_str = ", ".join([str(g) for g in self.gens])
+        rels_str = ", ".join([word_to_str(r) for r in self.rels])
+        return "\\langle " + gens_str + " \\mid " + rels_str + " \\rangle"
 
-    generators_string = string[:string.index(divider)]
+def str_to_group(generators_string, relations_string):
+    generators_string = generators_string.replace(" ","")
     generators = [str_to_syllable(s) for s in generators_string.split(",")]
 
-    relations_string = string[string.index(divider)+len(divider):]
+    relations_string = relations_string.replace(" ","")
     strings = relations_string.split(",")
     relations = []
     for s in strings:

@@ -14,8 +14,8 @@ def index():
     if form.validate_on_submit():
         gens_str = form.generators.data
         rel_str = form.relation.data
-        group = magnus.str_to_group(gens_str + "|" + rel_str) # fix this
-        group_strings = [str(gp) for gp in magnus.magnus_breakdown(group)]
+        group = magnus.str_to_group(gens_str, rel_str)
+        group_strings = [gp.latex() for gp in magnus.magnus_breakdown(group)]
         return render_template('index.html', form=form,
                                group_strings=group_strings)
     return render_template('index.html', form=form)

@@ -62,7 +62,7 @@ class TestIO(unittest.TestCase):
         bc3_inverse = invert_word([b,c3])
         word = commutator + commutator + [a] + bc3_inverse + bc3_inverse + [z]
 
-        s = "x^{-1} y^{-1} x y x^{-1} y^{-1} x y a c^{-3} b^{-1} c^{-3} b^{-1} z"
+        s ="x^{-1} y^{-1} x y x^{-1} y^{-1} x y a c^{-3} b^{-1} c^{-3} b^{-1} z"
         self.assertEqual(word_to_str(word), s)
 
     def test_str_to_group(self):
@@ -70,7 +70,7 @@ class TestIO(unittest.TestCase):
         y = Syllable("y",[],1)
         relation = [x, y, x.inverse(), y.inverse()]
         group = Group([x,y],[relation])
-        self.assertEqual(str_to_group("<x,y|xy=yx>"), group)
+        self.assertEqual(str_to_group("x,y", "xy=yx"), group)
 
 
 
@@ -81,7 +81,7 @@ class TestMagnusCase1(unittest.TestCase):
         c = Syllable("c",[],1)
         relation = reduce_word([a.inverse(), b, c, a, a, b.inverse()])
         group = Group([a,b,c],[relation])
-        self.assertEqual(group, str_to_group("<a,b,c|a^-1 b c a^2 b^-1>"))
+        self.assertEqual(group, str_to_group("a,b,c", "a^-1 b c a^2 b^-1"))
 
         a_minus1 = Syllable("a",-1,1)
         a_0      = Syllable("a",0,1)
@@ -105,7 +105,7 @@ class TestMagnusCase1(unittest.TestCase):
         word = [b, a, c, b.pow(2), a.pow(-3), c.pow(3), a.pow(2)]
         relation = reduce_word(word)
         group = Group([a,b,c],[relation])
-        self.assertEqual(group, str_to_group("<a,b,c|bacb^2a^-3c^3a^2>"))
+        self.assertEqual(group, str_to_group("a,b,c", "bacb^2a^-3c^3a^2"))
 
         c_minus1 = Syllable("c",-1,1)
         c_0      = Syllable("c",0,1)
@@ -175,7 +175,7 @@ class TestMagnusCase1(unittest.TestCase):
         b = Syllable("b",[],1)
         relation = [a, b.pow(10), a, b.pow(-7), a, b.pow(-3)]
         group = Group([a,b], [relation])
-        self.assertEqual(group, str_to_group("<a,b|ab^10 ab^{-7} ab^{-3}>"))
+        self.assertEqual(group, str_to_group("a,b", "ab^10 ab^{-7} ab^{-3}"))
 
         HNN_gens = [Syllable("a",i,1) for i in range(-10,1)]
         new_group_gens = HNN_gens.copy()
@@ -202,14 +202,14 @@ class TestMagnusCase2(unittest.TestCase):
         c = Syllable("c",[],1)
         relation = [a, b.pow(2), c, b.inverse(), a, b.inverse()]
         group = Group([a,b,c], [relation])
-        self.assertEqual(group, str_to_group("<a,b,c|ab^2cb^-1ab^-1>"))
+        self.assertEqual(group, str_to_group("a,b,c", "ab^2cb^-1ab^-1"))
 
         x = Syllable("x",[],1)
         y = Syllable("y",[],1)
         new_rel = [y, x.pow(4), c, x.pow(-2), y, x.pow(-2)]
         new_group = Group([x,y,c], [new_rel])
         self.assertEqual(new_group,
-                         str_to_group("<x, y, c | y x^{4} c x^{-2} y x^{-2}>"))
+                         str_to_group("x, y, c ", "y x^{4} c x^{-2} y x^{-2}"))
 
         C, used_letters = magnus_case2(group)
         self.assertEqual(C, new_group)
