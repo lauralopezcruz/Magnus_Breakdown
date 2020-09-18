@@ -72,10 +72,14 @@ class TestIO(unittest.TestCase):
         group = Group([x,y],[relation])
         self.assertEqual(str_to_group("x,y", "xy=yx"), group)
 
+        group.name = "Blue man"
+        self.assertEqual(str_to_group("x,y", "xy=yx", "Blue man"), group)
+
 
 
 class TestMagnusCase1(unittest.TestCase):
     def test1(self):
+        # group = <a,b,c | a^-1 b c a^2 b^-1>
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         c = Syllable("c",[],1)
@@ -99,6 +103,7 @@ class TestMagnusCase1(unittest.TestCase):
         self.assertEqual(new_group, H)
 
     def test2(self):
+        # group = <a,b,c | b a c b^2 a^-3 c^3 a^2>
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         c = Syllable("c",[],1)
@@ -171,6 +176,7 @@ class TestMagnusCase1(unittest.TestCase):
         self.assertEqual(H, new_group)
 
     def test4(self):
+        # group = <a,b | a b^10 a b^{-7} a b^{-3}>
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         relation = [a, b.pow(10), a, b.pow(-7), a, b.pow(-3)]

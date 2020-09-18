@@ -193,9 +193,10 @@ def invert_word(syllables): # e.g., a^2bc -> c^-1 b^-1 a^-2
 ###############
 
 class Group:
-    def __init__(self, generators, relations):
+    def __init__(self, generators, relations, name=None):
         self.gens = generators # list of syllables
         self.rels = relations  # list of words
+        self.name = name # optional string in LaTeX forrm
 
     def __eq__(self, other):
         if not isinstance(other, Group):
@@ -208,19 +209,24 @@ class Group:
         same_rels1 = all([(r in other.rels) for r in self.rels])
         same_rels2 = all([(r in self.rels) for r in other.rels])
 
-        return all([same_gens1, same_gens2, same_rels1, same_rels2])
+        same_name = self.name == other.name
+
+        return all([same_gens1, same_gens2, same_rels1, same_rels2, same_name])
 
     def __str__(self):
         gens_str = ", ".join([str(g) for g in self.gens])
         rels_str = ", ".join([word_to_str(r) for r in self.rels])
+        name_str = self.name + " = " if self.name else ""
         return "<" + gens_str + " | "  + rels_str + ">"
 
     def latex(self):
         gens_str = ", ".join([str(g) for g in self.gens])
         rels_str = ", ".join([word_to_str(r) for r in self.rels])
-        return "\\langle " + gens_str + " \\mid " + rels_str + " \\rangle"
+        name_str = self.name + " = " if self.name else ""
+        return (name_str + "\\langle " + gens_str + " \\mid "
+                + rels_str + " \\rangle")
 
-def str_to_group(generators_string, relations_string):
+def str_to_group(generators_string, relations_string, name=None):
     generators_string = generators_string.replace(" ","")
     generators = [str_to_syllable(s) for s in generators_string.split(",")]
 
@@ -245,7 +251,7 @@ def str_to_group(generators_string, relations_string):
                 left_word.extend(invert_word(right_word))
                 relations.append(left_word)
 
-    return Group(generators, relations)
+    return Group(generators, relations, name)
 
 
 
@@ -288,15 +294,16 @@ def word_length(word):
 # MAGNUS BREAKDOWN ALGORITHM #
 ##############################
 
-def magnus_case1(group, used_letters=set()):
+def magnus_case1(group, gen_exp0=None, used_letters=set()):
     generators = group.gens
     relation = reduce_word(group.rels[0])
 
-    # Find a generator with exponent sum zero
-    for generator in generators:
-        if exponent_sum(generator, relation) == 0:
-            gen_exp0 = generator
-            break
+    if not gen_exp0:
+        # Find a generator with exponent sum zero
+        for generator in generators:
+            if exponent_sum(generator, relation) == 0:
+                gen_exp0 = generator
+                break
 
     # If the relation begins with gen_exp0, conjugate the relation
     # to shift the first syllable to the end.
@@ -423,24 +430,27 @@ def magnus_breakdown(group):
     print(group)
     group_sequence = [group]
 
-    used_letters = {gen.ltr[0] for gen in group.gens}
+    used_letters = {gen.ltr for gen in group.gens}
 
     while word_length(group_sequence[-1].rels[0]) > 1:
         free_generators, group = free_gen_rewrite(group)
         generators = group.gens
         relation = reduce_word(group.rels[0])
 
-        zero_gen = None
+        gen_exp0 = None
         for gen in generators:
             if exponent_sum(gen, relation) == 0:
-                zero_gen = gen
+                gen_exp0 = gen
                 break
-        if zero_gen != None:
-            [original_group, group, used_letters] = magnus_case1(group, used_letters)
+        if gen_exp0:
+            [original_group, group, used_letters] = magnus_case1(group, gen_exp0, used_letters)
+            group.name = "G_" + str(len(group_sequence))
+            print(group.latex())
             group_sequence.append(group)
             print("\nCase 1: "+str(group))
         else:
             [group, used_letters] = magnus_case2(group, used_letters)
+            group.name = "G_" + str(len(group_sequence))
             group_sequence.append(group)
             print("\nCase 2: "+str(group))
 
