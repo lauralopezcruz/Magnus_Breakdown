@@ -27,7 +27,9 @@ class TestIO(unittest.TestCase):
         b = Syllable("b",[],1)
         c3 = Syllable("c",[],3)
         self.assertEqual(str_to_word("bc^3"), [b,c3])
-        self.assertEqual(str_to_word("(bc^3)^2"), [b,c3,b,c3])
+        self.assertEqual(str_to_word("(bc^3)^2"), [b,c3]*2)
+        self.assertEqual(str_to_word("(bc^3)^{2}"), [b,c3]*2)
+        self.assertEqual(str_to_word("(bc^3)^{20}"), [b,c3]*20)
 
         x = Syllable("x",[],1)
         y = Syllable("y",[],1)

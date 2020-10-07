@@ -5,8 +5,8 @@ import string
 # SYLLABLE CLASS #
 ##################
 
-# The Syllable class represents a group element raised to a power. The group
-# element may have a subscript or multiple subscripts, which is stored as
+# The Syllable class represents a group generator raised to a power. The
+# generator may have a subscript or multiple subscripts, which is stored as
 # a separate attribute that is always a list, primarily of ints.
 class Syllable:
     def __init__(self, letter, subscript, exponent):
@@ -33,12 +33,10 @@ class Syllable:
                 self.exp == other.exp)
 
     def inverse(self):
-        new_exp = -self.exp
-        return Syllable(self.ltr, self.sub, new_exp)
+        return Syllable(self.ltr, self.sub, -self.exp)
 
     def pow(self, power):
-        new_exp = self.exp * power
-        return Syllable(self.ltr, self.sub, new_exp)
+        return Syllable(self.ltr, self.sub, self.exp * power)
 
     # Makes a new syllable with an additional subscript.
     def add_subscript(self, new_subscript):
@@ -55,7 +53,8 @@ class Syllable:
 #################################################################
 
 def str_to_syllable(string):
-    letter = string[0]
+    string = string.strip()
+    letter = string[0] # FIX: doesn't work with Greek letters
 
     if "_" not in string: # e.g., a^5
         subscript = []
@@ -118,30 +117,29 @@ def str_to_word(string):
         left = string[:right].rfind("(")
         substr = string[left+1:right]
 
-        # If the substring in parentheses isn't followed by an exponent
+        # If the substring in parentheses isn't followed by an exponent,
+        # just drop the parentheses.
         if right == len(string)-1 or string[right+1] != "^":
             string = string[:left] + substr + string[right+1:]
             continue
 
         # Otherwise build the exponent by taking all numeric characters or
-        # minus signs following the carat.
+        # minus signs following the carat
         exp_str = ""
-        exp_index = right+2
         for i in range(right+2, len(string)):
-            if string[i].isnumeric() or string[i] == "-":
+            if string[i].isnumeric() or string[i] in "-{}":
                 exp_str = exp_str + string[i]
-                exp_index = exp_index + 1
             else:
                 break
-        exp = int(exp_str)
+        exp = int(exp_str.replace("{","").replace("}",""))
         if exp >= 0:
             repeated_substr = substr * exp
         else:
             inverted_substr = word_to_str(invert_word(str_to_word(substr)))
-            inverted_substr = inverted_substr.replace(" ","")
             repeated_substr = inverted_substr * -exp
         string = string[:left] + repeated_substr + string[right+2+len(exp_str):]
 
+    # FIX: the following doesn't work with Greek letters
     # Cut string into syllables, assuming that an alphabet character indicates
     # the start of a new syllable (so this doesn't work for greek letters...)
     syllables = []
@@ -379,6 +377,8 @@ def free_gen_rewrite(group):
 
     return [free_generators, Group(new_generators,[relation])]
 
+
+
 # Returns a new one-relator group that has a generator with exponential sum 0
 # and contains the original group. The new group can now be used for case 1.
 def magnus_case2(group, used_letters=set()):
@@ -428,11 +428,11 @@ def magnus_case2(group, used_letters=set()):
 
 def magnus_breakdown(group):
     print(group)
-    group_sequence = [group]
+    groups = [group]
 
     used_letters = {gen.ltr for gen in group.gens}
 
-    while word_length(group_sequence[-1].rels[0]) > 1:
+    while word_length(groups[-1].rels[0]) > 1:
         free_generators, group = free_gen_rewrite(group)
         generators = group.gens
         relation = reduce_word(group.rels[0])
@@ -442,16 +442,14 @@ def magnus_breakdown(group):
             if exponent_sum(gen, relation) == 0:
                 gen_exp0 = gen
                 break
+
         if gen_exp0:
             [original_group, group, used_letters] = magnus_case1(group, gen_exp0, used_letters)
-            group.name = "G_" + str(len(group_sequence))
-            print(group.latex())
-            group_sequence.append(group)
             print("\nCase 1: "+str(group))
         else:
             [group, used_letters] = magnus_case2(group, used_letters)
-            group.name = "G_" + str(len(group_sequence))
-            group_sequence.append(group)
             print("\nCase 2: "+str(group))
+        group.name = "G_" + str(len(groups))
+        groups.append(group)
 
-    return group_sequence
+    return groups
