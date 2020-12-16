@@ -1,5 +1,43 @@
 import string
 
+# Split a string into tokens delimited by any commas that aren't in braces.
+# E.g., "a_{1,2},b, c_{1,1,1}" -> ["a_{1,2}", "b", "c_{1,1,1}"]
+def comma_split(string):
+    tokens = []
+    L_index = 0
+    for (i,char) in enumerate(string):
+        if char == ",":
+            if string[:i].count("{") == string[:i].count("}"):
+                R_index = i
+                tokens.append(string[L_index:R_index])
+                L_index = R_index + 1
+
+    tokens.append(string[L_index:len(string)])
+    return tokens
+
+def get_new_letters(used_letters, num_letters, preferred_letters=[]):
+    available_letters = list(string.ascii_lowercase)
+    available_letters.remove("i")
+    available_letters.remove("j")
+    greek_letters = ["alpha","beta","gamma","delta","epsilon","zeta","eta",
+                     "theta","iota","kappa","lambda","mu","nu","xi","pi","rho",
+                     "tau","phi","chi","psi","omega"]
+    for letter in greek_letters:
+        letter = "\\" + letter
+    available_letters.extend(greek_letters)
+
+    for letter in used_letters:
+        available_letters.remove(letter)
+
+    for letter in reversed(preferred_letters):
+        if letter in available_letters:
+            available_letters.remove(letter)
+            available_letters.insert(0, letter)
+
+    return available_letters[:num_letters]
+
+
+
 ##################
 ##################
 # SYLLABLE CLASS #
@@ -90,17 +128,8 @@ def str_to_word(string):
         right = string.index("]")
         left = string[:right].rfind("[")
         substring = string[left+1:right]
+        first_arg, second_arg = comma_split(substring)
 
-        # Make sure the comma that separates the two arguments is not between
-        # any braces {...}, in which case it's delimiting multiple subscripts.
-        for (i,char) in enumerate(substring):
-            if char == ",":
-                if substring[:i].count("{") == substring[:i].count("}"):
-                    comma_index = i
-                    break
-
-        first_arg = substring[:comma_index]
-        second_arg = substring[comma_index+1:]
         string = (string[:left]
                   + "("
                   + word_to_str(invert_word(str_to_word(first_arg)))
@@ -215,7 +244,7 @@ class Group:
         gens_str = ", ".join([str(g) for g in self.gens])
         rels_str = ", ".join([word_to_str(r) for r in self.rels])
         name_str = self.name + " = " if self.name else ""
-        return "<" + gens_str + " | "  + rels_str + ">"
+        return name_str + "<" + gens_str + " | "  + rels_str + ">"
 
     def latex(self):
         gens_str = ", ".join([str(g) for g in self.gens])
@@ -226,10 +255,10 @@ class Group:
 
 def str_to_group(generators_string, relations_string, name=None):
     generators_string = generators_string.replace(" ","")
-    generators = [str_to_syllable(s) for s in generators_string.split(",")]
+    generators = [str_to_syllable(s) for s in comma_split(generators_string)]
 
     relations_string = relations_string.replace(" ","")
-    strings = relations_string.split(",")
+    strings = comma_split(relations_string)
     relations = []
     for s in strings:
         if "=" not in s: # e.g., xyx^{-1}y^{-1}
@@ -258,26 +287,6 @@ def str_to_group(generators_string, relations_string, name=None):
 # HELPER FUNCTIONS FOR MAGNUS BREAKDOWN ALGORITHM #
 ###################################################
 
-def get_new_letters(used_letters, num_letters, preferred_letters=[]):
-    available_letters = list(string.ascii_lowercase)
-    available_letters.remove("i")
-    available_letters.remove("j")
-    greek_letters = ["alpha","beta","gamma","delta","epsilon","zeta","eta",
-                     "theta","iota","kappa","lambda","mu","nu","xi","pi","rho",
-                     "tau","phi","chi","psi","omega"]
-    for letter in greek_letters:
-        letter = "\\" + letter
-    available_letters.extend(greek_letters)
-
-    for letter in used_letters:
-        available_letters.remove(letter)
-
-    for letter in reversed(preferred_letters):
-        if letter in available_letters:
-            available_letters.remove(letter)
-            available_letters.insert(0, letter)
-
-    return available_letters[:num_letters]
 
 def exponent_sum(generator, relation):
     return sum([syl.exp for syl in relation if syl.base() == generator.base() ])
@@ -427,7 +436,7 @@ def magnus_case2(group, used_letters=set()):
 
 
 def magnus_breakdown(group):
-    print(group)
+    # print(group)
     groups = [group]
 
     used_letters = {gen.ltr for gen in group.gens}
@@ -445,10 +454,10 @@ def magnus_breakdown(group):
 
         if gen_exp0:
             [original_group, group, used_letters] = magnus_case1(group, gen_exp0, used_letters)
-            print("\nCase 1: "+str(group))
+            # print("\nCase 1: "+str(group))
         else:
             [group, used_letters] = magnus_case2(group, used_letters)
-            print("\nCase 2: "+str(group))
+            # print("\nCase 2: "+str(group))
         group.name = "G_" + str(len(groups))
         groups.append(group)
 

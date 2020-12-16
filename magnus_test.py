@@ -77,6 +77,16 @@ class TestIO(unittest.TestCase):
         group.name = "Blue man"
         self.assertEqual(str_to_group("x,y", "xy=yx", "Blue man"), group)
 
+        y0 = Syllable("y",0,1)
+        y1 = Syllable("y",1,1)
+        c10 = Syllable("c",[-1,0],1)
+        c22 = Syllable("c",[2,2],1)
+        group1 = Group([y0, y1, c10, c22], [[c10, y0, y1, c22.pow(3)]])
+        group2 = str_to_group("y_{0}, y_{1}, c_{-1,0}, c_{2,2}",
+                              "c_{-1,0} y_{0} y_{1} c_{2,2}^{3}")
+        self.assertEqual(group1, group2,
+                         msg = f"\n{group1}\n{group2}")
+
 
 
 class TestMagnusCase1(unittest.TestCase):
@@ -223,9 +233,68 @@ class TestMagnusCase2(unittest.TestCase):
         self.assertEqual(C, new_group)
 
 
+
+class TestFullBreakdown(unittest.TestCase):
+    def test1(self):
+        G_0 = str_to_group("a,b,c",
+                           "bacb^2a^-3c^3a^2",
+                           name="G_0")
+        G_1 = str_to_group("b_{-1}, b_{0}, c_{-1}, c_{0}, c_{1}, c_{2}",
+                           "b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}",
+                           name="G_1")
+        G_2 = str_to_group("x, y, c_{-1}, c_{2}",
+                           "x^{2} c_{-1} y x^{-1} y x^{-1} c_{2}^{3}",
+                           name="G_2")
+        G_3 = str_to_group("y_{0}, y_{1}, c_{-1,0}, c_{2,2}",
+                           "c_{-1,0} y_{0} y_{1} c_{2,2}^{3}",
+                           name="G_3")
+        G_4 = str_to_group("e, f, c_{-1,0}, c_{2,2}",
+                           "c_{-1,0} f c_{2,2}^{3}",
+                           name="G_4")
+        G_5 = str_to_group("g, h, c_{2,2}",
+                           "g h g^{-1} c_{2,2}^{3}",
+                           name="G_5")
+        G_6 = str_to_group("h_{0}, c_{2,2,1}",
+                           "h_{0} c_{2,2,1}^{3}",
+                           name="G_6")
+        G_7 = str_to_group("l, m", "m", name="G_7")
+
+        groups = magnus_breakdown(G_0)
+        self.assertEqual(groups, [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7])
+
+    def test2(self):
+        G_0 = str_to_group("a, b, c, d",
+                           "a^{2} b c^{-1} a",
+                           name="G_0")
+        G_1 = str_to_group("x, y, c",
+                           "y x^{-1} y x^{2} c^{-1} y x^{-1}",
+                           name="G_1")
+        G_2 = str_to_group("y_{-1}, y_{0}, y_{1}, c_{-1}",
+                           "y_{0} y_{1} c_{-1}^{-1} y_{-1}",
+                           name="G_2")
+        G_3 = str_to_group("e, f, y_{1}, c_{-1}",
+                           "e y_{1} c_{-1}^{-1} f e^{-1}",
+                           name="G_3")
+        G_4 = str_to_group("f_{0}, y_{1,0}, c_{-1,0}",
+                           "y_{1,0} c_{-1,0}^{-1} f_{0}",
+                           name="G_4")
+        G_5 = str_to_group("h, k, c_{-1,0}",
+                           "h c_{-1,0}^{-1} k h^{-1}",
+                           name="G_5")
+        G_6 = str_to_group("k_{0}, c_{-1,0,0}",
+                           "c_{-1,0,0}^{-1} k_{0}",
+                           name="G_6")
+        G_7 = str_to_group("m, n",
+                           "m^{-1} n m",
+                           name="G_7")
+        G_8 = str_to_group("n_{0}",
+                           "n_{0}",
+                           name="G_8")
+
+        groups = magnus_breakdown(G_0)
+        self.assertEqual(groups, [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7, G_8])
+
+
+
 if __name__ == '__main__':
     unittest.main()
-
-
-#groups = magnus_breakdown(str_to_group("<a,b,c|bacb^2a^-3c^3a^2>"))
-#groups = magnus_breakdown(str_to_group("<a,b,c,d|a^2bc^-1a>"))
