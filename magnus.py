@@ -194,19 +194,28 @@ def str_to_word(string):
 
 def reduce_word(word): # e.g., abaaa^-5 -> aba^-3
     syllables = word.copy()
-    i = 0
-    while i < len(syllables)-1:
-        s1 = syllables[i]
-        s2 = syllables[i+1]
-        if s1.base() == s2.base():
-            exp = s1.exp + s2.exp
-            if exp !=0:
-                product = Syllable(s1.ltr, s1.sub, exp)
-                syllables = syllables[:i] + [product] + syllables[i+2:]
+
+    reduced = False
+    while not reduced:
+        # Make one pass to reduce the word. It might take several passes.
+        # E.g., a b b^{-1} a -> a a -> a^2
+        i = 0
+        while i < len(syllables)-1:
+            s1 = syllables[i]
+            s2 = syllables[i+1]
+            if s1.base() == s2.base():
+                exp = s1.exp + s2.exp
+                if exp !=0:
+                    product = Syllable(s1.ltr, s1.sub, exp)
+                    syllables = syllables[:i] + [product] + syllables[i+2:]
+                else:
+                    syllables = syllables[:i] + syllables[i+2:]
             else:
-                syllables = syllables[:i] + syllables[i+2:]
-        else:
-            i = i+1
+                i = i+1
+
+        reduced = all([ syllables[i].base() != syllables[i+1].base()
+                        for i in range(len(syllables)-1) ])
+
     return syllables
 
 def invert_word(syllables): # e.g., a^2bc -> c^-1 b^-1 a^-2
@@ -441,23 +450,30 @@ def magnus_breakdown(group):
 
     used_letters = {gen.ltr for gen in group.gens}
 
-    while word_length(groups[-1].rels[0]) > 1:
+    while (word_length(groups[-1].rels[0]) > 1 and len(groups[-1].gens) > 1):
         free_generators, group = free_gen_rewrite(group)
-        generators = group.gens
-        relation = reduce_word(group.rels[0])
 
-        gen_exp0 = None
-        for gen in generators:
-            if exponent_sum(gen, relation) == 0:
-                gen_exp0 = gen
-                break
+        # if free_generators:
+        #     print("\nWithout free generators: "+str(group))
+        # else:
+        if not free_generators:
+            generators = group.gens
+            relation = reduce_word(group.rels[0])
 
-        if gen_exp0:
-            [original_group, group, used_letters] = magnus_case1(group, gen_exp0, used_letters)
-            # print("\nCase 1: "+str(group))
-        else:
-            [group, used_letters] = magnus_case2(group, used_letters)
-            # print("\nCase 2: "+str(group))
+            gen_exp0 = None
+            for gen in generators:
+                if exponent_sum(gen, relation) == 0:
+                    gen_exp0 = gen
+                    break
+
+            if gen_exp0:
+                [original_group, group, used_letters] = magnus_case1(group, gen_exp0, used_letters)
+                # print("\nCase 1: "+str(group))
+
+            else:
+                [group, used_letters] = magnus_case2(group, used_letters)
+                # print("\nCase 2: "+str(group))
+
         group.name = "G_" + str(len(groups))
         groups.append(group)
 

@@ -242,57 +242,70 @@ class TestFullBreakdown(unittest.TestCase):
         G_1 = str_to_group("b_{-1}, b_{0}, c_{-1}, c_{0}, c_{1}, c_{2}",
                            "b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}",
                            name="G_1")
-        G_2 = str_to_group("x, y, c_{-1}, c_{2}",
-                           "x^{2} c_{-1} y x^{-1} y x^{-1} c_{2}^{3}",
+        G_2 = str_to_group("b_{-1}, b_{0}, c_{-1}, c_{2}",
+                           "b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}",
                            name="G_2")
-        G_3 = str_to_group("y_{0}, y_{1}, c_{-1,0}, c_{2,2}",
-                           "c_{-1,0} y_{0} y_{1} c_{2,2}^{3}",
+        G_3 = str_to_group("x, y, c_{-1}, c_{2}",
+                           "x^{2} c_{-1} y x^{-1} y x^{-1} c_{2}^{3}",
                            name="G_3")
-        G_4 = str_to_group("e, f, c_{-1,0}, c_{2,2}",
-                           "c_{-1,0} f c_{2,2}^{3}",
+        G_4 = str_to_group("y_{0}, y_{1}, c_{-1,0}, c_{2,2}",
+                           "c_{-1,0} y_{0} y_{1} c_{2,2}^{3}",
                            name="G_4")
-        G_5 = str_to_group("g, h, c_{2,2}",
-                           "g h g^{-1} c_{2,2}^{3}",
+        G_5 = str_to_group("e, f, c_{-1,0}, c_{2,2}",
+                           "c_{-1,0} f c_{2,2}^{3}",
                            name="G_5")
-        G_6 = str_to_group("h_{0}, c_{2,2,1}",
-                           "h_{0} c_{2,2,1}^{3}",
+        G_6 = str_to_group("f, c_{-1,0}, c_{2,2}",
+                           "c_{-1,0} f c_{2,2}^{3}",
                            name="G_6")
-        G_7 = str_to_group("l, m", "m", name="G_7")
+        G_7 = str_to_group("g, h, c_{2,2}",
+                           "g h g^{-1} c_{2,2}^{3}",
+                           name="G_7")
+        G_8 = str_to_group("h_{0}, c_{2,2,1}",
+                           "h_{0} c_{2,2,1}^{3}",
+                           name="G_8")
+        G_9 = str_to_group("l, m",
+                           "m",
+                           name="G_9")
 
         groups = magnus_breakdown(G_0)
-        self.assertEqual(groups, [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7])
+        self.assertEqual(groups,
+                         [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7, G_8, G_9])
 
     def test2(self):
         G_0 = str_to_group("a, b, c, d",
                            "a^{2} b c^{-1} a",
                            name="G_0")
-        G_1 = str_to_group("x, y, c",
-                           "y x^{-1} y x^{2} c^{-1} y x^{-1}",
+        G_1 = str_to_group("a, b, c",
+                           "a^{2} b c^{-1} a",
                            name="G_1")
-        G_2 = str_to_group("y_{-1}, y_{0}, y_{1}, c_{-1}",
-                           "y_{0} y_{1} c_{-1}^{-1} y_{-1}",
+        G_2 = str_to_group("x, y, c",
+                           "y x^{-1} y x^{2} c^{-1} y x^{-1}",
                            name="G_2")
-        G_3 = str_to_group("e, f, y_{1}, c_{-1}",
-                           "e y_{1} c_{-1}^{-1} f e^{-1}",
+        G_3 = str_to_group("y_{-1}, y_{0}, y_{1}, c_{-1}",
+                           "y_{0} y_{1} c_{-1}^{-1} y_{-1}",
                            name="G_3")
-        G_4 = str_to_group("f_{0}, y_{1,0}, c_{-1,0}",
-                           "y_{1,0} c_{-1,0}^{-1} f_{0}",
+        G_4 = str_to_group("e, f, y_{1}, c_{-1}",
+                           "e y_{1} c_{-1}^{-1} f e^{-1}",
                            name="G_4")
-        G_5 = str_to_group("h, k, c_{-1,0}",
-                           "h c_{-1,0}^{-1} k h^{-1}",
+        G_5 = str_to_group("f_{0}, y_{1,0}, c_{-1,0}",
+                           "y_{1,0} c_{-1,0}^{-1} f_{0}",
                            name="G_5")
-        G_6 = str_to_group("k_{0}, c_{-1,0,0}",
-                           "c_{-1,0,0}^{-1} k_{0}",
+        G_6 = str_to_group("h, k, c_{-1,0}",
+                           "h c_{-1,0}^{-1} k h^{-1}",
                            name="G_6")
-        G_7 = str_to_group("m, n",
-                           "m^{-1} n m",
+        G_7 = str_to_group("k_{0}, c_{-1,0,0}",
+                           "c_{-1,0,0}^{-1} k_{0}",
                            name="G_7")
-        G_8 = str_to_group("n_{0}",
-                           "n_{0}",
+        G_8 = str_to_group("m, n",
+                           "m^{-1} n m",
                            name="G_8")
+        G_9 = str_to_group("n_{0}",
+                           "n_{0}",
+                           name="G_9")
 
         groups = magnus_breakdown(G_0)
-        self.assertEqual(groups, [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7, G_8])
+        self.assertEqual(groups,
+                         [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7, G_8, G_9])
 
 
 
