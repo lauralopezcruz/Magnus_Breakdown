@@ -262,14 +262,12 @@ class Group:
         return (name_str + "\\langle " + gens_str + " \\mid "
                 + rels_str + " \\rangle")
 
-def str_to_group(generators_string, relations_string, name=None):
+def str_to_group(generators_string, relations_strings, name=None):
     generators_string = generators_string.replace(" ","")
     generators = [str_to_syllable(s) for s in comma_split(generators_string)]
 
-    relations_string = relations_string.replace(" ","")
-    strings = comma_split(relations_string)
     relations = []
-    for s in strings:
+    for s in relations_strings:
         if "=" not in s: # e.g., xyx^{-1}y^{-1}
             relations.append(str_to_word(s))
         else: # e.g., xy=yx or xyx^-1=1

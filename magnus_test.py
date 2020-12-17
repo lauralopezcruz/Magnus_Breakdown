@@ -72,10 +72,10 @@ class TestIO(unittest.TestCase):
         y = Syllable("y",[],1)
         relation = [x, y, x.inverse(), y.inverse()]
         group = Group([x,y],[relation])
-        self.assertEqual(str_to_group("x,y", "xy=yx"), group)
+        self.assertEqual(str_to_group("x,y", ["xy=yx"]), group)
 
         group.name = "Blue man"
-        self.assertEqual(str_to_group("x,y", "xy=yx", "Blue man"), group)
+        self.assertEqual(str_to_group("x,y", ["xy=yx"], "Blue man"), group)
 
         y0 = Syllable("y",0,1)
         y1 = Syllable("y",1,1)
@@ -83,21 +83,20 @@ class TestIO(unittest.TestCase):
         c22 = Syllable("c",[2,2],1)
         group1 = Group([y0, y1, c10, c22], [[c10, y0, y1, c22.pow(3)]])
         group2 = str_to_group("y_{0}, y_{1}, c_{-1,0}, c_{2,2}",
-                              "c_{-1,0} y_{0} y_{1} c_{2,2}^{3}")
-        self.assertEqual(group1, group2,
-                         msg = f"\n{group1}\n{group2}")
+                              ["c_{-1,0} y_{0} y_{1} c_{2,2}^{3}"])
+        self.assertEqual(group1, group2)
 
 
 
 class TestMagnusCase1(unittest.TestCase):
     def test1(self):
-        # group = <a,b,c | a^-1 b c a^2 b^-1>
+        # group = < a,b,c | a^-1 b c a^2 b^-1 >
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         c = Syllable("c",[],1)
         relation = reduce_word([a.inverse(), b, c, a, a, b.inverse()])
         group = Group([a,b,c],[relation])
-        self.assertEqual(group, str_to_group("a,b,c", "a^-1 b c a^2 b^-1"))
+        self.assertEqual(group, str_to_group("a,b,c", ["a^-1 b c a^2 b^-1"]))
 
         a_minus1 = Syllable("a",-1,1)
         a_0      = Syllable("a",0,1)
@@ -115,14 +114,14 @@ class TestMagnusCase1(unittest.TestCase):
         self.assertEqual(new_group, H)
 
     def test2(self):
-        # group = <a,b,c | b a c b^2 a^-3 c^3 a^2>
+        # group = < a,b,c | b a c b^2 a^-3 c^3 a^2 >
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         c = Syllable("c",[],1)
         word = [b, a, c, b.pow(2), a.pow(-3), c.pow(3), a.pow(2)]
         relation = reduce_word(word)
         group = Group([a,b,c],[relation])
-        self.assertEqual(group, str_to_group("a,b,c", "bacb^2a^-3c^3a^2"))
+        self.assertEqual(group, str_to_group("a,b,c", ["bacb^2a^-3c^3a^2"]))
 
         c_minus1 = Syllable("c",-1,1)
         c_0      = Syllable("c",0,1)
@@ -148,7 +147,7 @@ class TestMagnusCase1(unittest.TestCase):
         self.assertEqual(new_group, H)
 
     def test3(self):
-        # group = <a,b,c,d,e,f,x | b a c b^{2} a^{-3} c^{3} a^{2} d>
+        # group = < a,b,c,d,e,f,x | b a c b^{2} a^{-3} c^{3} a^{2} d >
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         c = Syllable("c",[],1)
@@ -188,12 +187,12 @@ class TestMagnusCase1(unittest.TestCase):
         self.assertEqual(H, new_group)
 
     def test4(self):
-        # group = <a,b | a b^10 a b^{-7} a b^{-3}>
+        # group = < a,b | a b^10 a b^{-7} a b^{-3} >
         a = Syllable("a",[],1)
         b = Syllable("b",[],1)
         relation = [a, b.pow(10), a, b.pow(-7), a, b.pow(-3)]
         group = Group([a,b], [relation])
-        self.assertEqual(group, str_to_group("a,b", "ab^10 ab^{-7} ab^{-3}"))
+        self.assertEqual(group, str_to_group("a,b", ["ab^10 ab^{-7} ab^{-3}"]))
 
         HNN_gens = [Syllable("a",i,1) for i in range(-10,1)]
         new_group_gens = HNN_gens.copy()
@@ -220,14 +219,14 @@ class TestMagnusCase2(unittest.TestCase):
         c = Syllable("c",[],1)
         relation = [a, b.pow(2), c, b.inverse(), a, b.inverse()]
         group = Group([a,b,c], [relation])
-        self.assertEqual(group, str_to_group("a,b,c", "ab^2cb^-1ab^-1"))
+        self.assertEqual(group, str_to_group("a,b,c", ["ab^2cb^-1ab^-1"]))
 
         x = Syllable("x",[],1)
         y = Syllable("y",[],1)
         new_rel = [y, x.pow(4), c, x.pow(-2), y, x.pow(-2)]
         new_group = Group([x,y,c], [new_rel])
         self.assertEqual(new_group,
-                         str_to_group("x, y, c ", "y x^{4} c x^{-2} y x^{-2}"))
+                         str_to_group("x, y,c", ["y x^{4} c x^{-2} y x^{-2}"]))
 
         C, used_letters = magnus_case2(group)
         self.assertEqual(C, new_group)
@@ -236,35 +235,36 @@ class TestMagnusCase2(unittest.TestCase):
 
 class TestFullBreakdown(unittest.TestCase):
     def test1(self):
+        # group = < a,b,c | b a c b^2 a^-3 c^3 a^2 >
         G_0 = str_to_group("a,b,c",
-                           "bacb^2a^-3c^3a^2",
+                           ["bacb^2a^-3c^3a^2"],
                            name="G_0")
         G_1 = str_to_group("b_{-1}, b_{0}, c_{-1}, c_{0}, c_{1}, c_{2}",
-                           "b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}",
+                           ["b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}"],
                            name="G_1")
         G_2 = str_to_group("b_{-1}, b_{0}, c_{-1}, c_{2}",
-                           "b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}",
+                           ["b_{0} c_{-1} b_{-1}^{2} c_{2}^{3}"],
                            name="G_2")
         G_3 = str_to_group("x, y, c_{-1}, c_{2}",
-                           "x^{2} c_{-1} y x^{-1} y x^{-1} c_{2}^{3}",
+                           ["x^{2} c_{-1} y x^{-1} y x^{-1} c_{2}^{3}"],
                            name="G_3")
         G_4 = str_to_group("y_{0}, y_{1}, c_{-1,0}, c_{2,2}",
-                           "c_{-1,0} y_{0} y_{1} c_{2,2}^{3}",
+                           ["c_{-1,0} y_{0} y_{1} c_{2,2}^{3}"],
                            name="G_4")
         G_5 = str_to_group("e, f, c_{-1,0}, c_{2,2}",
-                           "c_{-1,0} f c_{2,2}^{3}",
+                           ["c_{-1,0} f c_{2,2}^{3}"],
                            name="G_5")
         G_6 = str_to_group("f, c_{-1,0}, c_{2,2}",
-                           "c_{-1,0} f c_{2,2}^{3}",
+                           ["c_{-1,0} f c_{2,2}^{3}"],
                            name="G_6")
         G_7 = str_to_group("g, h, c_{2,2}",
-                           "g h g^{-1} c_{2,2}^{3}",
+                           ["g h g^{-1} c_{2,2}^{3}"],
                            name="G_7")
         G_8 = str_to_group("h_{0}, c_{2,2,1}",
-                           "h_{0} c_{2,2,1}^{3}",
+                           ["h_{0} c_{2,2,1}^{3}"],
                            name="G_8")
         G_9 = str_to_group("l, m",
-                           "m",
+                           ["m"],
                            name="G_9")
 
         groups = magnus_breakdown(G_0)
@@ -272,35 +272,36 @@ class TestFullBreakdown(unittest.TestCase):
                          [G_0, G_1, G_2, G_3, G_4, G_5, G_6, G_7, G_8, G_9])
 
     def test2(self):
+        # group = < a,b,c,d | a^2 b c^{-1} a >
         G_0 = str_to_group("a, b, c, d",
-                           "a^{2} b c^{-1} a",
+                           ["a^{2} b c^{-1} a"],
                            name="G_0")
         G_1 = str_to_group("a, b, c",
-                           "a^{2} b c^{-1} a",
+                           ["a^{2} b c^{-1} a"],
                            name="G_1")
         G_2 = str_to_group("x, y, c",
-                           "y x^{-1} y x^{2} c^{-1} y x^{-1}",
+                           ["y x^{-1} y x^{2} c^{-1} y x^{-1}"],
                            name="G_2")
         G_3 = str_to_group("y_{-1}, y_{0}, y_{1}, c_{-1}",
-                           "y_{0} y_{1} c_{-1}^{-1} y_{-1}",
+                           ["y_{0} y_{1} c_{-1}^{-1} y_{-1}"],
                            name="G_3")
         G_4 = str_to_group("e, f, y_{1}, c_{-1}",
-                           "e y_{1} c_{-1}^{-1} f e^{-1}",
+                           ["e y_{1} c_{-1}^{-1} f e^{-1}"],
                            name="G_4")
         G_5 = str_to_group("f_{0}, y_{1,0}, c_{-1,0}",
-                           "y_{1,0} c_{-1,0}^{-1} f_{0}",
+                           ["y_{1,0} c_{-1,0}^{-1} f_{0}"],
                            name="G_5")
         G_6 = str_to_group("h, k, c_{-1,0}",
-                           "h c_{-1,0}^{-1} k h^{-1}",
+                           ["h c_{-1,0}^{-1} k h^{-1}"],
                            name="G_6")
         G_7 = str_to_group("k_{0}, c_{-1,0,0}",
-                           "c_{-1,0,0}^{-1} k_{0}",
+                           ["c_{-1,0,0}^{-1} k_{0}"],
                            name="G_7")
         G_8 = str_to_group("m, n",
-                           "m^{-1} n m",
+                           ["m^{-1} n m"],
                            name="G_8")
         G_9 = str_to_group("n_{0}",
-                           "n_{0}",
+                           ["n_{0}"],
                            name="G_9")
 
         groups = magnus_breakdown(G_0)
