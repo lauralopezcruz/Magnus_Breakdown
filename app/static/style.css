@@ -50,6 +50,19 @@ a:hover, a:active {
     box-shadow: 0 1px #478589;
 }
 
+li {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+code {
+    font-family: "Fira Code", monospace;
+    font-weight: 300;
+    font-size: 15px;
+    border: 1px solid #999999;
+    padding: 3px;
+}
+
 
 .katex {
     font-size: 0.9em !important;
@@ -97,6 +110,10 @@ nav a {
 }
 
 form#group-input textarea {
+    font-family: "Fira Code", monospace;
+    font-weight: 300;
+    font-size: 15px;
+    padding: 3px;
     vertical-align: middle;
 }
 form#group-input input[type="submit"] {
@@ -112,4 +129,12 @@ form#group-input input[type="submit"] {
 
 form#group-input input[type="submit"]:hover {
     background-color: #a5d6e0;
+}
+
+details#examples {
+    margin-top: 5px;
+    margin-bottom: 30px;
+}
+details#examples ul {
+    margin-top: 10px;
 }

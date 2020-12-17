@@ -1,17 +1,71 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p>
+  <p class="text">
     Input a one-relator group as you would in LaTeX.
   </p>
+
+  <details id="examples">
+    <summary>Examples</summary>
+
+    <ul>
+      <li>
+        \( \Big\langle \)
+        <code>a,b,c,x</code>
+        \( \Big| \)
+        <code>a^2b^{-1}c^{10}</code>
+        \( \Big\rangle \)
+
+        gives
+
+        \( \big\langle
+        a,b,c,x
+        \,\big|\,
+        a^2b^{-1}c^{10}
+        \big\rangle \)
+      </li>
+
+      <li>
+        \( \Big\langle \)
+        <code>a,x,y</code>
+        \( \Big| \)
+        <code>a^2[x,y^{-1}]^2</code>
+        \( \Big\rangle \)
+
+        gives
+
+        \( \big\langle
+        a,x,y
+        \,\big|\,
+        a^2[x,y^{-1}]^2
+        \big\rangle \)
+      </li>
+
+      <li>
+        \( \Big\langle \)
+        <code>a_0,b_0</code>
+        \( \Big| \)
+        <code>(a_0^2 b^2_0)^{-2}</code>
+        \( \Big\rangle \)
+
+        gives
+
+        \( \big\langle
+        a_0,b_0
+        \,\big|\,
+        (a_0^2 b^2_0)^{-2}
+        \big\rangle \)
+      </li>
+    </ul>
+  </details>
 
   <form id="group-input" action="" method="post" novalidate>
     {{ form.hidden_tag() }}
     <p>
       \( G_0=\Big\langle \)
-      {{ form.generators(rows=2, cols=20) }}
+      {{ form.generators(rows=1, cols=15) }}
       \( \Big| \)
-      {{ form.relation(rows=2, cols=40) }}
+      {{ form.relation(rows=1, cols=30) }}
       \( \Big\rangle \)
 
       <br />
